@@ -1,10 +1,11 @@
 import HashMap "mo:base/HashMap";
 import Principal "mo:base/Principal";
+import Debug "mo:base/Debug";
 
 actor Token {
     var owner : Principal = Principal.fromText("owabf-u4tav-mwclf-5sup2-3j7oy-btcut-4syq6-c7tio-ysr77-nnnwo-fae");
     var totalSupply : Nat = 1000000000;
-    var symbol : Text = "SHIV";
+    var symbol : Text = "DHAN";
 
     var balances = HashMap.HashMap<Principal, Nat>(1, Principal.equal, Principal.hash);
 
@@ -17,6 +18,37 @@ actor Token {
             case (?result) result;
         };
         return balance;
+    };
+
+    public query func getSymbol() : async Text {
+        return symbol;
+    };
+
+    public shared(msg) func payOut() : async Text {
+        if (balances.get(msg.caller) == null) {
+            let amount = 10000;
+            let result = await transfer(msg.caller, amount);
+            return result;
+        } else {
+            return "Already Claimed";
+        }
+        
+    };
+    
+    public shared(msg) func transfer(to: Principal, amount: Nat) : async Text {
+        let fromBalance = await balanceOf(msg.caller);
+        if (fromBalance > amount){
+            let newFromBalance : Nat = fromBalance - amount;
+            balances.put(msg.caller, newFromBalance);
+
+            let toBalance = await balanceOf(to);
+            let newToBalance = toBalance + amount;
+            balances.put(to, newToBalance);
+
+            return "Success";
+        } else {
+            return "Insufficient Funds";
+        }
     }
 
 };
